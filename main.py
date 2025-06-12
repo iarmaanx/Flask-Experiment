@@ -7,8 +7,8 @@ app = Flask(__name__)
 # Secret key for session encryption (make sure to keep it secure)
 app.secret_key = 'your_secret_key_here'
 
-# Set the upload folder to be directly inside the current directory
-UPLOAD_FOLDER = 'uploads'
+# Set the upload folder to be inside the static folder
+UPLOAD_FOLDER = os.path.join('static', 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp'}
 
 # Ensure the upload folder exists
@@ -126,7 +126,7 @@ def logout():
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
-    return send_from_directory(UPLOAD_FOLDER, filename)
+    return send_from_directory(os.path.join('static', 'uploads'), filename)
 
 if __name__ == '__main__':
     app.run(debug=True)
