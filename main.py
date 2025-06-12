@@ -7,8 +7,8 @@ app = Flask(__name__)
 # Secret key for session encryption (make sure to keep it secure)
 app.secret_key = 'your_secret_key_here'
 
-# Set the upload folder to be inside the static folder
-UPLOAD_FOLDER = os.path.join('uploads')
+# Set the upload folder to be directly inside the current directory
+UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp'}
 
 # Ensure the upload folder exists
@@ -93,25 +93,28 @@ def remove_image():
         
         # Try to remove the file
         try:
-            os.remove(filepath)  # Delete the file from the server
-            
-            # Load user data from the JSON file
-            user_data = load_user_data()
-            username = session['username']
-            
-            # Remove the profile image entry from user data
-            if username in user_data and 'profile_image' in user_data[username]:
-                del user_data[username]['profile_image']
-            
-            # Save updated user data back to the JSON file
-            save_user_data(user_data)
-            
-            # Remove profile image from session
-            session.pop('profile_image', None)
-            
-            return jsonify({"message": f"File {filename} successfully removed."}), 200
-        except FileNotFoundError:
-            return jsonify({"message": f"File {filename} not found."}), 404
+            if os.path.exists(filepath):
+                os.remove(filepath)  # Delete the file from the server
+                
+                # Load user data from the JSON file
+                user_data = load_user_data()
+                username = session['username']
+                
+                # Remove the profile image entry from user data
+                if username in user_data and 'profile_image' in user_data[username]:
+                    del user_data[username]['profile_image']
+                
+                # Save updated user data back to the JSON file
+                save_user_data(user_data)
+                
+                # Remove profile image from session
+                session.pop('profile_image', None)
+                
+                return jsonify({"message": f"File {filename} successfully removed."}), 200
+            else:
+                return jsonify({"message": "File not found."}), 404
+        except Exception as e:
+            return jsonify({"message": f"Error removing file: {str(e)}"}), 500
     else:
         return jsonify({"message": "No file associated with this user."}), 400
 
@@ -123,7 +126,7 @@ def logout():
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
-    return send_from_directory(os.path.join('static', 'uploads'), filename)
+    return send_from_directory(UPLOAD_FOLDER, filename)
 
 if __name__ == '__main__':
     app.run(debug=True)
